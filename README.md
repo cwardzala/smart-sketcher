@@ -4,6 +4,8 @@ Unofficial tools for the **smART Sketcher Projector 2.0** — transfer any image
 
 If you bought your kid this device and discovered the outrageous subscription prices just to access a small set of clip-art images, this is for you. Use it directly or build your own app on top of the [protocol specification](docs/protocol.md).
 
+This project is a Swift + SwiftUI rewrite of [megakode/smart-sketcher-tools](https://github.com/megakode/smart-sketcher-tools), the original Python CLI and protocol reverse-engineering work.
+
 ---
 
 ## Apps
