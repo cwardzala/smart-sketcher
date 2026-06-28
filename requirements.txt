@@ -1,5 +1,0 @@
-asyncclick
-anyio
-progress
-pillow
-bleak

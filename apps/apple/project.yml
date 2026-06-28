@@ -1,0 +1,87 @@
+name: SmartSketcher
+
+options:
+  bundleIdPrefix: com.smartsketcher
+  defaultConfig: Debug
+
+configs:
+  Debug: debug
+  Release: release
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    ENABLE_PREVIEWS: YES
+
+targets:
+
+  # ── iOS / iPadOS ───────────────────────────────────────────────────────────
+  SmartSketcher-iOS:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: SmartSketcher
+        excludes:
+          - "*.plist"
+          - "*.entitlements"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.smartsketcher.app
+        PRODUCT_NAME: smART Sketcher
+        INFOPLIST_KEY_CFBundleDisplayName: smART Sketcher
+        TARGETED_DEVICE_FAMILY: "1,2"
+        DEVELOPMENT_TEAM: "ND3675584E"
+        CODE_SIGN_STYLE: Automatic
+    info:
+      path: SmartSketcher/Info-iOS.plist
+      properties:
+        CFBundleName: smART Sketcher
+        CFBundleDisplayName: smART Sketcher
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        NSBluetoothAlwaysUsageDescription: >
+          smART Sketcher uses Bluetooth to connect to your
+          smART Sketcher 2.0 projector and transfer images.
+
+  # ── macOS ──────────────────────────────────────────────────────────────────
+  SmartSketcher-macOS:
+    type: application
+    platform: macOS
+    deploymentTarget: "13.0"
+    sources:
+      - path: SmartSketcher
+        excludes:
+          - "*.plist"
+          - "*.entitlements"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.smartsketcher.app.mac
+        PRODUCT_NAME: smART Sketcher
+        INFOPLIST_KEY_CFBundleDisplayName: smART Sketcher
+        DEVELOPMENT_TEAM: "ND3675584E"
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_ENTITLEMENTS: SmartSketcher/SmartSketcher-macOS.entitlements
+        ENABLE_HARDENED_RUNTIME: YES
+    info:
+      path: SmartSketcher/Info-macOS.plist
+      properties:
+        CFBundleName: smART Sketcher
+        CFBundleDisplayName: smART Sketcher
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        NSHighResolutionCapable: true
+        LSApplicationCategoryType: public.app-category.utilities
+        NSBluetoothAlwaysUsageDescription: >
+          smART Sketcher uses Bluetooth to connect to your
+          smART Sketcher 2.0 projector and transfer images.

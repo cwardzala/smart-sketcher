@@ -1,189 +1,145 @@
-# Smart Sketcher Tools
-Unofficial Python tools and protocol specifications for the ***smART Sketcher Projecter 2.0***
+# smART Sketcher Tools
 
-If you bought your kid the above mentioned device, you probably got really angry when you opened the app and discovered the outrages monthly prices they tried to get you to pay, just for a tiny bunch of clip art images, which there are thousands of freely available on the internet (i.e. http://clipart-library.com/).
+Unofficial tools for the **smART Sketcher Projector 2.0** — transfer any image to the projector over Bluetooth, for free.
 
-For you, the angry parent, i hereby give you a free alternative ❤️ 
+If you bought your kid this device and discovered the outrageous subscription prices just to access a small set of clip-art images, this is for you. Use it directly or build your own app on top of the [protocol specification](docs/protocol.md).
 
-Use the tools directly or build your own app/tool upon the protocol specifications.
+---
 
-Have fun, and enjoy this otherwise nice little toy.
+## Apps
 
-![Screenshot from 2023-01-02 23-25-49](https://user-images.githubusercontent.com/6302832/210282020-5abcaa71-a610-4081-a491-e6b642a2b26a.png)
+| Platform     | Location                  | Min OS       |
+|--------------|---------------------------|--------------|
+| iOS / iPadOS | `apps/apple/`             | iOS 16.0     |
+| macOS        | `apps/apple/`             | macOS 13.0   |
 
-![signal-2023-01-02-230907_002](https://user-images.githubusercontent.com/6302832/210281247-6e95173e-d4c7-411a-96ca-63e872e91160.jpeg)
+Both apps are built from a single shared Swift + SwiftUI codebase using Xcode with two separate targets.
 
-_Note: Not actually running Wolf on the projector, but something interactive is on my TODO list :)_
+---
 
+## Prerequisites
 
+| Tool        | Install                        | Purpose                        |
+|-------------|--------------------------------|--------------------------------|
+| Xcode 15+   | Mac App Store                  | Build iOS & macOS targets      |
+| xcodegen    | `brew install xcodegen`        | Generate `.xcodeproj` from YAML|
+| cairo       | `brew install cairo`           | Icon generation (SVG → PNG)    |
+| Python 3    | system / `brew install python` | Icon generation script         |
+| Pillow + cairosvg | `pip3 install pillow cairosvg` | Icon generation dependencies |
 
-# Tool usage
+---
 
-`sketcher.py` is small python tool, that can transfer images in most formats directly from your PC to the projector.
+## Getting Started
 
-**Usage:**
+```bash
+# 1. Generate the Xcode project
+make gen
 
-`python3 sketcher.py sendimage dog.jpg`
-
-This will automatically try to scan for a nearby device and send an image to it.
-
-You can also specify the Bluetooth address directly (which is a lot faster):
-
-`python3 sketcher.py --adr 11:22:33:44:55:66 sendimage dog.jpg`
-
-**Requirements:**
-
-The required Python packages can be seen in the usual `requirements.txt` file:
-
-```
-asyncclick
-anyio
-progress
-pillow
-bleak
+# 2. Open in Xcode
+make open
 ```
 
-# Protocol specification
+Select your target (SmartSketcher-iOS or SmartSketcher-macOS) and hit Run.
 
-### BLE
+### First run on a real device
 
-All interaction with the device (both sending commands, image data and receiving notifications), is done using the following BLE characteristic:
+- **iOS / iPadOS** — connect via USB, trust the Mac on the device, select it from Xcode's run destination, and hit Run. Apps signed with a free Apple ID expire after 7 days; a paid developer account removes that limit.
+- **macOS** — build and run directly from Xcode, or copy the built `.app` from `~/Library/Developer/Xcode/DerivedData/` to `/Applications`.
 
-```0000ffe3-0000-1000-8000-00805f9b34fb```
+---
 
-
-### Commands
-
-All commands are 8 bytes long and has the general form:
+## Makefile Reference
 
 ```
-========================================
-| # Bytes | Description                |
-========================================
-|    2    | Command ID (Little endian) |
-========================================
-|    6    | Command parameters         |
-========================================
+make gen            Generate SmartSketcher.xcodeproj from apps/apple/project.yml
+make open           Open the project in Xcode
+make build-ios      Headless iOS build (no signing)
+make build-macos    Headless macOS build (no signing)
+make icon           Regenerate all icon assets from assets/smart-sketcher-icon-512.svg
+make dist           Archive, notarize, and staple for direct distribution (macOS)
+make archive        Archive + export for App Store Connect upload
+make validate       Validate an App Store archive (requires API_KEY and API_ISSUER)
+make upload         Upload an App Store archive  (requires API_KEY and API_ISSUER)
+make clean          Remove build artifacts and generated project files
 ```
 
-The following commands IDs are available:
+---
 
-```
-0x01 (01) - Send Image
-0x02 (02) - Exercise (short exercise_id)
-0x05 (05) - Next Step
-0x06 (06) - Previous Step
-0x07 (07) - Replay Steps
-0x08 (08) - Get SD Id
-0x09 (09) - Get System Version
-0x0a (10) - Animation Speed Toggle
-0x0b (11) - Get Animation Speed
-0x0c (12) - Get "Where Am I" (Response = "OK_12_00_00_00_00_00" !?)
-0x0f (15) - Update Brightness (short brightness)
-0x10 (16) - Get Brightness
-0x15 (21) - Reset SD Card (not tested! clone your SD card before testing!)
-0x17 (23) - Send Partial Image (x,y,w,h)
-0x20 (32) - Get LCD version
+## Direct Distribution (macOS)
+
+The `make dist` target produces a notarized, Gatekeeper-compatible `.app` for sharing outside the App Store.
+
+**Prerequisites:**
+- A **Developer ID Application** certificate installed in your keychain
+  - Create in Xcode → Settings → Accounts → Manage Certificates → `+` → Developer ID Application
+- An **App Store Connect API key** (`.p8` file)
+  - Generate at appstoreconnect.apple.com → Users & Access → Integrations → API Keys
+  - Place the file at `~/.appstoreconnect/private_keys/AuthKey_<KEY_ID>.p8`
+
+```bash
+make dist API_KEY=<KEY_ID> API_ISSUER=<ISSUER_UUID>
 ```
 
-Unless indicated in the above list, the commands has no arguments besides the command id. The rest of the 8 commands bytes are then set to 0x00.
+The finished app lands in `build/dist/smART Sketcher.app`. Copy it to `/Applications` or wrap it in a DMG to distribute.
 
-When sending images, the actual image data has to be preceeded by a "Send Image" command. More info in the "Sending Images" section below.
+---
 
-```
-=========================================================
-| Name    | Send Image                                  |
-=========================================================
-| Cmd ID  | 01                                          |
-=========================================================
-| Format  | [0x01,0x00,0x00,0x00,  *4,0x00,  *6,0x00]   |     
-=========================================================
-| Example | [0x01,0x00,0x00,0x00,0x50,0x00,0x01,0x00]   |
-| Notes   | *4 = In the app there is some logic looking |
-|           at an unknown parameter:                    |
-|           cmd[4] = i >= 160 ? (byte) -96 : (byte) 80; |
-|                                                       |
-|           *6 = Image comp.                            |
-|                if (useImageTransferComp) {            |
-|                   cmd[6] = 1;                         |
-|                 } else {                              |
-|                   if (chipset == Chipset.HM_17) {     |
-|                     cmd[6] = Byte.MIN_VALUE;          |
-|                   } else {                            |
-|                     cmd[6] = 2;                       |
-|                   }                                   |
-|                 }                                     |
-|                                                       |
-|         The option can be toggled in the mobile app   |
-|                                                       |
-|=======================================================|
+## App Store Distribution (macOS)
 
-=========================================================
-| Name    | Exercise                                    |
-=========================================================
-| Cmd ID  | 0x02                                        |
-=========================================================
-| Format  [0x02,0x00,0x00,0x00,0x00,0x00,EID,EID]       |
-|                                                       |
-| EID = Exercise ID (2 bytes, little endian)            |
-|                                                       |
-=========================================================
+```bash
+# Archive and export
+make archive
 
-=========================================================
-| Name    | Update Brightness                           |
-=========================================================
-| Cmd ID  | 0x0F (15)                                   |
-=========================================================
-| Format  [0x02,0x00,0x00,0x00,0x00,0x00,BR,BR]         |
-|                                                       |
-| BR = Brightness (2 bytes, little endian)              |
-| (TODO: Determine range)                               |
-=========================================================
-
-=========================================================
-| Name    | Send Partial Image                          |
-=========================================================
-| Cmd ID  | 0x17 (23)                                   |
-=========================================================
-| Format  [0x17,0x00,0x02,0x00,x,y,w,h]                 |
-|                                                       |
-| x,y - Destination of the partial image                |
-| w,h - Width and Height of the partial image           |
-| The function of the short at index[2] and index[3]    |
-| with the hardcoded value 0x0002 is yet to be          |
-| determined.                                           |
-|                                                       |
-=========================================================
-
+# Validate, then upload
+make validate API_KEY=<KEY_ID> API_ISSUER=<ISSUER_UUID>
+make upload   API_KEY=<KEY_ID> API_ISSUER=<ISSUER_UUID>
 ```
 
+After uploading, complete submission in App Store Connect.
 
-###Responses
+---
 
-All responses are send as a notification from the GATT characteristic and are in ASCII form. 
+## Icon
 
-Most commands reply with an "OK_nn" if they are successfull, where nn = Command ID in decimal.
+The icon source is `assets/smart-sketcher-icon-512.svg`. To regenerate all sizes:
 
-###Sending images
-
-Images needs to be transfered in 160 x 128 pixels in RGB565 format. A single pixel thus takes up two bytes:
-
-```RRRRRGGG GGGBBBBB```
-
-Before sending the actual image data, a "Send Image" command needs to be send. After that, image data transfer happens 4 packets at a time, until the device sends an `OK` notification back, indicating that it is ready for more data. (Maybe the packet sizes can be set to something else, i have not experimented with that)
-
-
-Send Image command:
-```
-[0x01,0x00,0x00,0x00,0x50,0x00,0x01,0x00]
+```bash
+make icon
 ```
 
-Image Data (repeat this for all 128 lines):
+This writes:
+- `assets/Icon.icns` — macOS icon bundle
+- `assets/icon_preview.png` — 512px preview
+- `apps/apple/SmartSketcher/Assets.xcassets/AppIcon.appiconset/icon_*.png` — Xcode asset catalog
+
+---
+
+## Project Structure
+
 ```
-[one horizontal line of image data in RGB565 format]
+.
+├── apps/
+│   └── apple/
+│       ├── project.yml                  # xcodegen project definition
+│       └── SmartSketcher/
+│           ├── SmartSketcherApp.swift
+│           ├── ContentView.swift
+│           ├── BLEManager.swift         # CoreBluetooth + async/await
+│           ├── ImageProcessor.swift     # RGB565 conversion
+│           ├── Platform.swift           # UIImage / NSImage shim
+│           ├── Assets.xcassets/
+│           └── SmartSketcher-macOS.entitlements
+├── assets/
+│   └── smart-sketcher-icon-512.svg      # Icon source
+├── docs/
+│   └── protocol.md                      # BLE protocol specification
+├── scripts/
+│   └── make_icon.py                     # Icon generation script
+└── Makefile
 ```
 
-Device will send a notification after each line, indicating it is ready for the next:
-```
-[0x4F 0x4B] ('OK' in ASCII)
-```
+---
+
+## Protocol
+
+See [docs/protocol.md](docs/protocol.md) for the full BLE command reference and image transfer specification.
