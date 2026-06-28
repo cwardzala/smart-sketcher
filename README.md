@@ -1,8 +1,20 @@
-# smART Sketcher Tools
+<div align="center">
+  <img src="assets/icon_preview.png" width="96" height="96" alt="smART Sketcher icon">
 
-Unofficial tools for the **smART Sketcher Projector 2.0** — transfer any image to the projector over Bluetooth, for free.
+  # smART Sketcher
 
-If you bought your kid this device and discovered the outrageous subscription prices just to access a small set of clip-art images, this is for you. Use it directly or build your own app on top of the [protocol specification](docs/protocol.md).
+  **Transfer any image to your smART Sketcher Projector 2.0 over Bluetooth — for free.**
+
+  ![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20iPadOS%20%7C%20macOS-blue)
+  ![Swift](https://img.shields.io/badge/Swift-5.9-orange?logo=swift)
+  ![License](https://img.shields.io/github/license/cwardzala/smart-sketcher)
+
+  <img src="docs/screenshots/macos.png" width="480" alt="smART Sketcher macOS screenshot">
+</div>
+
+---
+
+If you bought your kid this device and discovered the outrageous subscription prices just to access a small set of clip-art images, this is for you. Drop in any image — clip art, photos, drawings — and send it directly to the projector.
 
 This project is a Swift + SwiftUI rewrite of [megakode/smart-sketcher-tools](https://github.com/megakode/smart-sketcher-tools), the original Python CLI and protocol reverse-engineering work.
 
@@ -15,7 +27,7 @@ This project is a Swift + SwiftUI rewrite of [megakode/smart-sketcher-tools](htt
 | iOS / iPadOS | `apps/apple/`             | iOS 16.0     |
 | macOS        | `apps/apple/`             | macOS 13.0   |
 
-Both apps are built from a single shared Swift + SwiftUI codebase using Xcode with two separate targets.
+Both apps are built from a single shared Swift + SwiftUI codebase using two Xcode targets.
 
 ---
 
@@ -89,10 +101,7 @@ The finished app lands in `build/dist/smART Sketcher.app`. Copy it to `/Applicat
 ## App Store Distribution (macOS)
 
 ```bash
-# Archive and export
 make archive
-
-# Validate, then upload
 make validate API_KEY=<KEY_ID> API_ISSUER=<ISSUER_UUID>
 make upload   API_KEY=<KEY_ID> API_ISSUER=<ISSUER_UUID>
 ```
@@ -129,14 +138,12 @@ This writes:
 │           ├── BLEManager.swift         # CoreBluetooth + async/await
 │           ├── ImageProcessor.swift     # RGB565 conversion
 │           ├── Platform.swift           # UIImage / NSImage shim
-│           ├── Assets.xcassets/
-│           └── SmartSketcher-macOS.entitlements
+│           └── Assets.xcassets/
 ├── assets/
 │   └── smart-sketcher-icon-512.svg      # Icon source
 ├── docs/
-│   └── protocol.md                      # BLE protocol specification
-├── scripts/
-│   └── make_icon.py                     # Icon generation script
+│   ├── protocol.md                      # BLE protocol specification
+│   └── screenshots/
 └── Makefile
 ```
 
